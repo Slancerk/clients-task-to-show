@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  mongo_db:
+    container_name: db_container
+    image: mongo:latest
+    restart: always
+    port:
+      - 2717:27017
+    volumes: 
+      - mongo_db:/data/db
+
+  redis:
+    container_name: redis_container
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+
+  api:
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/usr/src/app
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo_db:27017
+      DB_NAME: my_db
+      NAME: my_name
+    depends_on: 
+      - mongo_db
+      - redis
+
+volumes: 
+  mongo_db: {}
+  redis_data: {}
