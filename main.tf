@@ -1,16 +1,25 @@
 # Define your provider configuration (AWS in this case)
 provider "aws" {
-  region = "us-east-1"
+  region = "ap-south-1"
 }
 
-# Create the S3 bucket for backup
-resource "aws_s3_bucket" "backup_bucket" {
-  bucket = "my-backup-bucket"
-  acl    = "private"
 
-  # Enable versioning for backup
-  versioning {
-    enabled = true
+
+# Create the S3 bucket for backup
+resource "aws_s3_bucket" "example" {
+  bucket = "my-unique-bucket-abcdesfr"
+  # acl    = "private"
+}
+
+# resource "aws_s3_bucket_acl" "example" {
+#   bucket = aws_s3_bucket.example.id
+#   # acl    = "private"
+# }
+
+resource "aws_s3_bucket_versioning" "versioning_example" {
+  bucket = aws_s3_bucket.example.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
@@ -20,7 +29,7 @@ resource "aws_iam_policy" "backup_policy" {
   path        = "/"
   description = "Policy for S3 backup"
 
-  policy = <<EOF
+  policy = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -33,13 +42,13 @@ resource "aws_iam_policy" "backup_policy" {
         "s3:GetObject"
       ],
       "Resource": [
-        "arn:aws:s3:::${aws_s3_bucket.backup_bucket.id}",
-        "arn:aws:s3:::${aws_s3_bucket.backup_bucket.id}/*"
+        "arn:aws:s3:::${aws_s3_bucket.example.id}",
+        "arn:aws:s3:::${aws_s3_bucket.example.id}/*"
       ]
     }
   ]
 }
-EOF
+POLICY
 }
 
 # Create an IAM user for backup
@@ -60,9 +69,11 @@ resource "aws_iam_access_key" "backup_access_key" {
 
 # Output the access key and secret key for the backup user
 output "backup_access_key" {
-  value = aws_iam_access_key.backup_access_key.id
+  value     = aws_iam_access_key.backup_access_key.id
+  sensitive = true
 }
 
 output "backup_secret_key" {
-  value = aws_iam_access_key.backup_access_key.secret
+  value     = aws_iam_access_key.backup_access_key.secret
+  sensitive = true
 }
